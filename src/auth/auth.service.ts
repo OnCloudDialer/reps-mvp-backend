@@ -2,6 +2,8 @@ import {
   ForbiddenException,
   Injectable,
   NotAcceptableException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -64,11 +66,11 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new ForbiddenException('user.doesnt.exists');
+      throw new NotFoundException('user.doesnt.exists');
     }
 
     if (!(await bcrypt.compare(loginUser.password, user.password))) {
-      throw new NotAcceptableException('invalid.credentials');
+      throw new UnauthorizedException('invalid.credentials');
     }
     return user;
   }
@@ -80,7 +82,7 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new ForbiddenException('user.doesnt.exists');
+      throw new NotFoundException('user.doesnt.exists');
     }
 
     return user;
@@ -90,6 +92,7 @@ export class AuthService {
     const token = await this.createPayload(user);
     return {
       data: {
+        user,
         access_token: token.access_token,
       },
       message: 'login.success',
