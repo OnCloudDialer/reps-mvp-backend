@@ -7,11 +7,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from './jwt-auth-guard';
 import { RegisterUserDto } from './dto/register.dto';
 import { AuthUser } from 'src/decorators/authUser';
 import { User } from '@prisma/client';
+import { LoginUserDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,9 +22,9 @@ export class AuthController {
   }
 
   @Post('login')
-  @UseGuards(AuthGuard('local'))
-  loginUser(@AuthUser() user: User) {
-    return this.authService.login(user);
+  // @UseGuards(AuthGuard('local'))
+  async loginUser(@Body() user: LoginUserDto) {
+    return await this.authService.login(user);
   }
 
   @Get('user')

@@ -1,7 +1,7 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
-  NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -88,11 +88,29 @@ export class AuthService {
     return user;
   }
 
-  async login(user: User): Promise<ApiResponseDto> {
-    const token = await this.createPayload(user);
+  async login(user: LoginUserDto): Promise<ApiResponseDto> {
+    const userRecord = await this.prismaService.user.findFirst({
+      where: {
+        email: user.email,
+      },
+    });
+    if (!userRecord) {
+      throw new BadRequestException('User Not Found');
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(
+      user.password,
+      userRecord.password,
+    );
+
+    if (!isPasswordCorrect) {
+      throw new UnauthorizedException('Either Password or Email is incorrect!');
+    }
+
+    const token = await this.createPayload(userRecord);
     return {
       data: {
-        user,
+        user: userRecord,
         access_token: token.access_token,
       },
       message: 'login.success',
