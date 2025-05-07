@@ -14,6 +14,8 @@ import { RegisterUserDto } from './dto/register.dto';
 import { LoginUserDto } from './dto/login.dto';
 import { Jwtdto } from './dto/jwt.dto';
 import { ConfigService } from '@nestjs/config';
+import { generateWorkspaceName } from './utils';
+import { UserPayload } from './dto/jwt.user.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +25,9 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(user: RegisterUserDto): Promise<ApiResponseDto> {
+  async register(
+    user: RegisterUserDto,
+  ): Promise<ApiResponseDto<{ user: User; access_token: string }>> {
     const rounds = parseInt(await this.configService.get('SALT_ROUNDS'));
     if (
       await this.prismaService.user.findFirst({
@@ -48,7 +52,10 @@ export class AuthService {
       },
     });
 
-    const token = await this.createPayload(newUser);
+    // Associating User with a Organization
+    await this.createUserOrganization(newUser.id);
+
+    const token = await this.createPayload(newUser.id);
 
     return {
       data: {
@@ -57,6 +64,23 @@ export class AuthService {
       },
       message: 'user.created',
     };
+  }
+
+  private async createUserOrganization(userId: string) {
+    const name = generateWorkspaceName();
+    const newOrganization = await this.prismaService.organization.create({
+      data: {
+        name,
+      },
+    });
+
+    return await this.prismaService.organizationMembers.create({
+      data: {
+        organizationId: newOrganization.id,
+        userId,
+        role: 'ORGANIZATION_OWNER',
+      },
+    });
   }
 
   async validateUser(loginUser: LoginUserDto): Promise<User> {
@@ -75,7 +99,7 @@ export class AuthService {
     return user;
   }
 
-  async validateUserByEmail(loginUser: Jwtdto): Promise<User> {
+  async validateUserByEmail(loginUser: Jwtdto): Promise<UserPayload> {
     const user = await this.prismaService.user.findFirst({
       where: {
         email: loginUser.email,
@@ -85,10 +109,12 @@ export class AuthService {
       throw new NotFoundException('user.doesnt.exists');
     }
 
-    return user;
+    return await this.createUserPayload(user.id);
   }
 
-  async login(user: LoginUserDto): Promise<ApiResponseDto> {
+  async login(
+    user: LoginUserDto,
+  ): Promise<ApiResponseDto<{ user: User; access_token: string }>> {
     const userRecord = await this.prismaService.user.findFirst({
       where: {
         email: user.email,
@@ -107,7 +133,7 @@ export class AuthService {
       throw new UnauthorizedException('Either Password or Email is incorrect!');
     }
 
-    const token = await this.createPayload(userRecord);
+    const token = await this.createPayload(userRecord.id);
     return {
       data: {
         user: userRecord,
@@ -117,20 +143,45 @@ export class AuthService {
     };
   }
 
-  async refreshToken(user: User): Promise<ApiResponseDto> {
-    const token = await this.createPayload(user);
+  async refreshToken(
+    user: User,
+  ): Promise<ApiResponseDto<{ user: User; access_token: string }>> {
+    const token = await this.createPayload(user.id);
     return {
       data: {
         user,
         access_token: token.access_token,
       },
-      message: 'login.success',
+      message: '',
     };
   }
 
-  async createPayload(user: User) {
+  async createPayload(userId: string) {
+    const payload = await this.createUserPayload(userId);
     return {
-      access_token: this.jwtService.sign({ email: user.email, id: user.id }),
+      access_token: this.jwtService.sign(payload),
     };
+  }
+
+  private async createUserPayload(userId: string) {
+    const userRecord = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+      include: {
+        OrganizationMembers: {
+          include: {
+            organization: true,
+          },
+        },
+      },
+    });
+    const organizationId = userRecord.OrganizationMembers[0].organizationId;
+
+    const payload: UserPayload = {
+      ...userRecord,
+      organizationId,
+    };
+    return payload;
   }
 }

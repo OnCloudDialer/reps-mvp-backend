@@ -10,10 +10,129 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Organization {
+  id                  String                @id @default(uuid())
+  name                String
+  createdAt           DateTime              @default(now())
+  OrganizationMembers OrganizationMembers[]
+  Store               Store[]
+  Contact             Contact[]
+  Tag                 Tag[]
+}
+
+model OrganizationMembers {
+  id             String       @id @default(uuid())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  role           UserRole
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  createdAt DateTime @default(now())
+  id                  String                @id @default(uuid())
+  email               String                @unique
+  password            String
+  name                String
+  createdAt           DateTime              @default(now())
+  Store               Store[]
+  OrganizationMembers OrganizationMembers[]
+  Contact             Contact[]
+  Tag                 Tag[]
+}
+
+model Store {
+  id             String         @id @default(uuid())
+  name           String
+  address        String
+  region         String
+  city           String
+  latitude       Float
+  longitude      Float
+  tags           StoreTag[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  StoreContact   StoreContact[]
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  User           User?          @relation(fields: [userId], references: [id])
+  userId         String?
+}
+
+model StoreContact {
+  id        String  @id @default(uuid())
+  store     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId String
+  Tag       Tag?    @relation(fields: [tagId], references: [id])
+  tagId     String?
+}
+
+model Contact {
+  id             String         @id @default(uuid())
+  name           String
+  phone          String
+  email          String
+  profilePicture String?
+  role           ContactRole
+  StoreContact   StoreContact[]
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  User           User?          @relation(fields: [userId], references: [id])
+  userId         String?
+  ContactNotes   ContactNotes[]
+}
+
+model ContactNotes {
+  id        String  @id @default(uuid())
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId String
+  note      Notes   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  noteId    String
+}
+
+model Notes {
+  id           String         @id @default(uuid())
+  content      String         @db.LongText()
+  type         NoteType
+  createdAt    DateTime       @default(now())
+  ContactNotes ContactNotes[]
+}
+
+model Tag {
+  id             String         @id @default(uuid())
+  name           String         @unique
+  stores         StoreTag[]
+  StoreContact   StoreContact[]
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  User           User?          @relation(fields: [userId], references: [id])
+  userId         String?
+}
+
+model StoreTag {
+  id      String @id @default(uuid())
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId String
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId   String
+}
+
+enum ContactRole {
+  STORE_MANAGER
+  BUYER
+  OWNER
+}
+
+enum NoteType {
+  STORE_NOTE
+  CONTACT_NOTE
+  VISIT_NOTE
+  PHOTO_NOTE
+}
+
+enum UserRole {
+  ORGANIZATION_OWNER
+  MEMBER
 }
