@@ -1,12 +1,7 @@
-import { ContactRole } from '@prisma/client';
+import { CreateStoreContactDTO } from './create-store-contact.dto';
+import { IsUUID } from 'class-validator';
 
-export class UpdateStoreContactDto {
+export class UpdateStoreContactDto extends CreateStoreContactDTO {
+  @IsUUID()
   id: string;
-  name: string;
-  phone: string;
-  email: string;
-  profilePicture: string;
-  role: ContactRole;
-  storeId?: string;
-  //
 }
