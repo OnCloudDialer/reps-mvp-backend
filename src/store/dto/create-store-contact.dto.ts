@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsUUID,
   IsUrl,
+  IsArray,
 } from 'class-validator';
 import { ContactRole } from '@prisma/client';
 
@@ -29,6 +30,7 @@ export class CreateStoreContactDTO {
   role: ContactRole;
 
   @IsOptional()
-  @IsUUID()
-  storeId?: string;
+  @IsArray()
+  @IsUUID('all', { each: true })
+  storeIds?: string[];
 }

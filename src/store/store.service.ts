@@ -3,15 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import {
-  Contact,
-  ContactRole,
-  Prisma,
-  Store,
-  StoreContact,
-} from '@prisma/client';
-import { CreateStoreContactDTO } from './dto/create-store-contact.dto';
-import { UpdateStoreContactDto } from './dto/update-store-contact.dto';
+import { ContactRole, Prisma, Store, StoreContact } from '@prisma/client';
 import { ApiResponseDto } from 'src/dto/api-response.dto';
 
 @Injectable()
@@ -51,7 +43,7 @@ export class StoreService {
   async findAll(
     userId: string,
     organizationId: string,
-    query: { tagIds?: string; name?: string },
+    query: { tagIds?: string; name?: string; contactId: string },
   ): Promise<ApiResponseDto<Store[]>> {
     const storeQuery: Prisma.StoreWhereInput = {
       organizationId,
@@ -60,6 +52,14 @@ export class StoreService {
 
     if (query.name) {
       storeQuery.name = query.name;
+    }
+
+    if (query.contactId) {
+      storeQuery.StoreContact = {
+        some: {
+          contactId: query.contactId,
+        },
+      };
     }
 
     if (query.tagIds) {
@@ -151,98 +151,6 @@ export class StoreService {
     return {
       data: contacts,
       message: '',
-    };
-  }
-
-  async deleteStoreContact(
-    organizationId: string,
-    id: string,
-  ): Promise<ApiResponseDto<null>> {
-    const checkStore = await this.prisma.contact.findUnique({
-      where: { id, organizationId },
-    });
-
-    if (!checkStore) {
-      throw new NotFoundException('No Store Found with this ID');
-    }
-
-    await this.prisma.contact.delete({
-      where: {
-        id,
-      },
-    });
-
-    return {
-      data: null,
-      message: 'Contact Deleted',
-    };
-  }
-
-  async createStoreContact(
-    organizationId: string,
-    userId: string,
-    data: CreateStoreContactDTO,
-  ): Promise<ApiResponseDto<Contact>> {
-    //
-
-    const newContact = await this.prisma.contact.create({
-      data: {
-        name: data.name,
-        phone: data.phone,
-        role: data.role,
-        email: data.email,
-        organizationId,
-        userId,
-      },
-    });
-    // Associating Contact with the Store
-
-    await this.prisma.storeContact.create({
-      data: {
-        storeId: data.storeId,
-        contactId: newContact.id,
-      },
-    });
-
-    return {
-      data: newContact,
-      message: 'New Contact Created!',
-    };
-  }
-
-  async updateStoreContact(
-    organizationId: string,
-    userId: string,
-    data: UpdateStoreContactDto,
-  ): Promise<ApiResponseDto<Contact>> {
-    //
-    const checkStoreContact = await this.prisma.contact.findFirst({
-      where: {
-        organizationId,
-        userId,
-        id: data.id,
-      },
-    });
-    if (!checkStoreContact) {
-      throw new NotFoundException('No Contact Found with this Id!');
-    }
-
-    // Updating Contact
-    const updatedRecord = await this.prisma.contact.update({
-      where: {
-        id: checkStoreContact.id,
-      },
-      data: {
-        name: data.name,
-        phone: data.phone,
-        role: data.role,
-        email: data.email,
-      },
-    });
-
-    return {
-      data: updatedRecord,
-      message: 'Contact Updated',
     };
   }
 

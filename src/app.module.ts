@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { StoreModule } from './store/store.module';
 import { TagModule } from './tag/tag.module';
 import { ActivityModule } from './activity/activity.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ActivityModule } from './activity/activity.module';
     StoreModule,
     TagModule,
     ActivityModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
