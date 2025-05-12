@@ -3,8 +3,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { ContactRole, Prisma, Store, StoreContact } from '@prisma/client';
+import {
+  ContactRole,
+  Notes,
+  Prisma,
+  Store,
+  StoreContact,
+} from '@prisma/client';
 import { ApiResponseDto } from 'src/dto/api-response.dto';
+import { CreateStoreNoteDto } from './dto/create-store-note.dto';
 
 @Injectable()
 export class StoreService {
@@ -214,6 +221,68 @@ export class StoreService {
     return {
       data: null,
       message: 'Store Deleted!',
+    };
+  }
+
+  async findStoreNotes(
+    organizationId: string,
+    storeId: string,
+  ): Promise<ApiResponseDto<Notes[]>> {
+    const checkContact = await this.prisma.store.findFirst({
+      where: {
+        organizationId,
+        id: storeId,
+        StoreNotes: {
+          every: {
+            note: {
+              type: 'STORE_NOTE',
+            },
+          },
+        },
+      },
+      include: {
+        StoreNotes: {
+          include: {
+            note: true,
+          },
+        },
+      },
+    });
+    if (!checkContact) {
+      throw new NotFoundException('No Store Found with this ID!');
+    }
+
+    const storeNotes = checkContact.StoreNotes.map(({ note }) => note);
+
+    return {
+      data: storeNotes,
+      message: '',
+    };
+  }
+
+  async createStoreNote(
+    data: CreateStoreNoteDto,
+  ): Promise<ApiResponseDto<Notes>> {
+    //
+
+    const newNote = await this.prisma.notes.create({
+      data: {
+        type: 'STORE_NOTE',
+        content: data.note,
+      },
+    });
+
+    // associating with Store
+    await this.prisma.storeNotes.create({
+      data: {
+        storeId: data.storeId,
+        noteId: newNote.id,
+      },
+    });
+
+    return {
+      data: newNote,
+      message: 'New Note Created',
     };
   }
 }

@@ -15,6 +15,7 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth-guard';
 import { AuthUser } from 'src/decorators/authUser';
 import { UserPayload } from 'src/auth/dto/jwt.user.dto';
+import { CreateStoreNoteDto } from './dto/create-store-note.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('stores')
@@ -45,6 +46,22 @@ export class StoreController {
       name,
       contactId,
     });
+  }
+
+  @Get('notes/:storeId')
+  getStoreNotes(
+    @AuthUser() user: UserPayload,
+    @Param('storeId') storeId: string,
+  ) {
+    return this.storeService.findStoreNotes(user.organizationId, storeId);
+  }
+
+  @Post('create-note')
+  createStoreNote(
+    @AuthUser() user: UserPayload,
+    @Body() data: CreateStoreNoteDto,
+  ) {
+    return this.storeService.createStoreNote(data);
   }
 
   @Get(':id')
