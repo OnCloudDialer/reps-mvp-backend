@@ -8,6 +8,7 @@ import { StoreModule } from './store/store.module';
 import { TagModule } from './tag/tag.module';
 import { ActivityModule } from './activity/activity.module';
 import { ContactModule } from './contact/contact.module';
+import { AreaTagModule } from './area-tag/area-tag.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ContactModule } from './contact/contact.module';
     TagModule,
     ActivityModule,
     ContactModule,
+    AreaTagModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

@@ -20,6 +20,10 @@ export class CreateStoreDto {
   @IsNotEmpty()
   address: string;
 
+  @IsUUID()
+  @IsNotEmpty()
+  areaTagId: string;
+
   @IsString()
   @IsNotEmpty()
   region: string;

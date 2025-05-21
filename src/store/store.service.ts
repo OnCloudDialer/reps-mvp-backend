@@ -44,13 +44,34 @@ export class StoreService {
       });
     }
 
+    if (data.areaTagId) {
+      //
+      await this.prisma.storeAreaTag.deleteMany({
+        where: {
+          storeId: store.id,
+        },
+      });
+
+      await this.prisma.storeAreaTag.createMany({
+        data: {
+          storeId: store.id,
+          areaTagId: data.areaTagId,
+        },
+      });
+    }
+
     return this.findOne(organizationId, store.id);
   }
 
   async findAll(
     userId: string,
     organizationId: string,
-    query: { tagIds?: string; name?: string; contactId: string },
+    query: {
+      tagIds?: string;
+      name?: string;
+      contactId: string;
+      areaTagIds?: string;
+    },
   ): Promise<ApiResponseDto<Store[]>> {
     const storeQuery: Prisma.StoreWhereInput = {
       organizationId,
@@ -74,6 +95,16 @@ export class StoreService {
         some: {
           tagId: {
             in: query.tagIds.split(','),
+          },
+        },
+      };
+    }
+
+    if (query.areaTagIds) {
+      storeQuery.StoreAreaTag = {
+        some: {
+          areaTagId: {
+            in: query.areaTagIds.split(','),
           },
         },
       };
@@ -200,6 +231,22 @@ export class StoreService {
           tagId,
         })),
         skipDuplicates: true,
+      });
+    }
+
+    if (data.areaTagId) {
+      //
+      await this.prisma.storeAreaTag.deleteMany({
+        where: {
+          storeId: id,
+        },
+      });
+
+      await this.prisma.storeAreaTag.createMany({
+        data: {
+          storeId: id,
+          areaTagId: data.areaTagId,
+        },
       });
     }
 

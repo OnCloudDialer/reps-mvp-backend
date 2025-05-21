@@ -18,6 +18,7 @@ model Organization {
   Store               Store[]
   Contact             Contact[]
   Tag                 Tag[]
+  AreaTag             AreaTag[]
 }
 
 model OrganizationMembers {
@@ -39,6 +40,7 @@ model User {
   OrganizationMembers OrganizationMembers[]
   Contact             Contact[]
   Tag                 Tag[]
+  AreaTag             AreaTag[]
 }
 
 model Store {
@@ -58,6 +60,7 @@ model Store {
   User           User?          @relation(fields: [userId], references: [id])
   userId         String?
   StoreNotes     StoreNotes[]
+  StoreAreaTag   StoreAreaTag[]
 }
 
 model StoreContact {
@@ -127,6 +130,27 @@ model StoreTag {
   storeId String
   tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
   tagId   String
+}
+
+model AreaTag {
+  id             String         @id @default(uuid())
+  name           String         @unique
+  coords         Json
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  User           User?          @relation(fields: [userId], references: [id])
+  userId         String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  StoreAreaTag   StoreAreaTag[]
+}
+
+model StoreAreaTag {
+  id        String  @id @default(uuid())
+  store     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  areaTag   AreaTag @relation(fields: [areaTagId], references: [id], onDelete: Cascade)
+  areaTagId String
 }
 
 enum ContactRole {

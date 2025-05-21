@@ -37,6 +37,7 @@ export class StoreController {
   @Get()
   findAll(
     @Query('tagIds') tagIds: string,
+    @Query('areaTagIds') areaTagIds: string,
     @Query('name') name: string,
     @Query('contactId') contactId: string,
     @AuthUser() user: UserPayload,
@@ -45,6 +46,7 @@ export class StoreController {
       tagIds,
       name,
       contactId,
+      areaTagIds,
     });
   }
 
