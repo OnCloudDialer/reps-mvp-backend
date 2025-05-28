@@ -19,6 +19,7 @@ model Organization {
   Contact             Contact[]
   Tag                 Tag[]
   AreaTag             AreaTag[]
+  Product             Product[]
 }
 
 model OrganizationMembers {
@@ -41,6 +42,7 @@ model User {
   Contact             Contact[]
   Tag                 Tag[]
   AreaTag             AreaTag[]
+  Product             Product[]
 }
 
 model Store {
@@ -124,6 +126,32 @@ model Tag {
   userId         String?
 }
 
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  description     String?       @db.Text
+  default_price   Int           @db.Int
+  unit_of_measure UnitOfMeasure @default(UNIT)
+  regular_price   Int           @db.Int
+  special_price   Int?          @db.Int
+  imageUrls       ImageUrl[]
+  announcements   String?       @db.Text
+  shareable_info  String?       @db.Text
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId  String
+  User            User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+}
+
+model ImageUrl {
+  id        Int     @id @default(autoincrement())
+  url       String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+}
+
 model StoreTag {
   id      String @id @default(uuid())
   store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -171,4 +199,26 @@ enum NoteType {
 enum UserRole {
   ORGANIZATION_OWNER
   MEMBER
+}
+
+enum UnitOfMeasure {
+  PIECE
+  BOX
+  CASE
+  PACK
+  BOTTLE
+  LITER
+  GALLON
+  KILOGRAM
+  GRAM
+  POUND
+  OUNCE
+  TUB
+  BAG
+  JAR
+  TRAY
+  PALLET
+  ROLL
+  DOZEN
+  UNIT
 }

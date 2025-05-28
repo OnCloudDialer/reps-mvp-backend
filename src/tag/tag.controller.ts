@@ -21,7 +21,6 @@ export class TagController {
 
   @Post()
   create(@Body() createTagDto: CreateTagDto, @AuthUser() user: UserPayload) {
-    console.log('🚀 ~ TagController ~ create ~ user:', user);
     return this.tagService.create(user, createTagDto);
   }
 

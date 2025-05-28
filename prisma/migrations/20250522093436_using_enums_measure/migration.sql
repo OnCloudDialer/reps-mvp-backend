@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Product` MODIFY `unit_of_measure` ENUM('PIECE', 'BOX', 'CASE', 'PACK', 'BOTTLE', 'LITER', 'GALLON', 'KILOGRAM', 'GRAM', 'POUND', 'OUNCE', 'TUB', 'BAG', 'JAR', 'TRAY', 'PALLET', 'ROLL', 'DOZEN', 'UNIT') NOT NULL DEFAULT 'UNIT';
