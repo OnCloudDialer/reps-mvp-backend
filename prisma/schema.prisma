@@ -20,6 +20,7 @@ model Organization {
   Tag                 Tag[]
   AreaTag             AreaTag[]
   Product             Product[]
+  Visit               Visit[]
 }
 
 model OrganizationMembers {
@@ -43,6 +44,7 @@ model User {
   Tag                 Tag[]
   AreaTag             AreaTag[]
   Product             Product[]
+  Visit               Visit[]
 }
 
 model Store {
@@ -63,6 +65,7 @@ model Store {
   userId         String?
   StoreNotes     StoreNotes[]
   StoreAreaTag   StoreAreaTag[]
+  Visit          Visit[]
 }
 
 model StoreContact {
@@ -88,6 +91,7 @@ model Contact {
   User           User?          @relation(fields: [userId], references: [id])
   userId         String?
   ContactNotes   ContactNotes[]
+  Visit          Visit[]
 }
 
 model ContactNotes {
@@ -181,6 +185,61 @@ model StoreAreaTag {
   areaTagId String
 }
 
+model Visit {
+  id             String          @id @default(uuid())
+  store          Store           @relation(fields: [storeId], references: [id])
+  storeId        String
+  contact        Contact?        @relation(fields: [contactId], references: [id])
+  contactId      String?
+  scheduledAt    DateTime?
+  startedAt      DateTime?
+  endedAt        DateTime?
+  visitType      VisitType       @default(SALES)
+  notes          VisitNote[]
+  photos         VisitPhoto[]
+  activities     VisitActivity[]
+  followUpDate   DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  User           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String?
+}
+
+model VisitNote {
+  id        String   @id @default(uuid())
+  visit     Visit    @relation(fields: [visitId], references: [id])
+  visitId   String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model VisitPhoto {
+  id          String   @id @default(uuid())
+  visit       Visit    @relation(fields: [visitId], references: [id])
+  visitId     String
+  imageUrl    String
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model VisitActivity {
+  id        String       @id @default(uuid())
+  visit     Visit        @relation(fields: [visitId], references: [id])
+  visitId   String
+  type      ActivityType
+  details   String?
+  createdAt DateTime     @default(now())
+}
+
+model Incentive {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+}
+
 enum ContactRole {
   STORE_MANAGER
   FLOOR_MANAGER
@@ -221,4 +280,21 @@ enum UnitOfMeasure {
   ROLL
   DOZEN
   UNIT
+}
+
+enum ActivityType {
+  CHECK_PRODUCTS
+  DISCUSS_PROMOTIONS
+  PLACE_ORDER
+  SCHEDULE_FOLLOW_UP
+  ADD_CONTACT_INFO
+  OTHER
+}
+
+enum VisitType {
+  SALES
+  AUDIT
+  SUPPORT
+  MERCHANDISING
+  OTHER
 }

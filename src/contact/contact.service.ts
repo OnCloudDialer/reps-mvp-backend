@@ -13,7 +13,7 @@ export class ContactService {
   async findAll(
     organizationId: string,
     id: string,
-    { role, name }: { role: string; name: string },
+    { role, name, storeId }: { role: string; name: string; storeId: string },
   ): Promise<ApiResponseDto<Contact[]>> {
     const query: Prisma.ContactWhereInput = {
       organizationId,
@@ -23,6 +23,13 @@ export class ContactService {
         },
       }),
       ...(name && { name }),
+      ...(storeId && {
+        StoreContact: {
+          some: {
+            storeId,
+          },
+        },
+      }),
     };
     const contacts = await this.prisma.contact.findMany({
       where: query,

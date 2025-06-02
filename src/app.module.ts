@@ -13,6 +13,7 @@ import { ProductsModule } from './products/products.module';
 import { MediaModule } from './media/media.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { VisitModule } from './visit/visit.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { join } from 'path';
     AreaTagModule,
     ProductsModule,
     MediaModule,
+    VisitModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

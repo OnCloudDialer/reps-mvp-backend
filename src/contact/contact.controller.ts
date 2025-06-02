@@ -25,11 +25,13 @@ export class ContactController {
   @Get('find-all')
   findAllContacts(
     @Param('id') id: string,
+    @Param('storeId') storeId: string,
     @AuthUser() user: UserPayload,
     @Query('role') role: string,
     @Query('name') name: string,
   ) {
     return this.contactService.findAll(user.organizationId, id, {
+      storeId,
       role: role,
       name,
     });
