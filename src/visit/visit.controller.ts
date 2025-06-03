@@ -14,6 +14,8 @@ import { VisitService } from './visit.service';
 import { UpdateVisitDTO } from './dto/update.visit.dto';
 import { CreateVisitDTO } from './dto/create.visit.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth-guard';
+import { CreateVisitNoteDto } from './dto/create-visit-note.dto';
+import { CreateVisitActivityDTO } from './dto/create-visit-activity.dto';
 
 @Controller('visit')
 @UseGuards(JwtAuthGuard)
@@ -43,5 +45,37 @@ export class VisitController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.visitService.remove(id);
+  }
+
+  @Get('notes/:visitId')
+  getVisitNotes(
+    @AuthUser() user: UserPayload,
+    @Param('visitId') visitId: string,
+  ) {
+    return this.visitService.findVisitNotes(user.organizationId, visitId);
+  }
+
+  @Post('create-note')
+  createVisitNote(
+    @AuthUser() user: UserPayload,
+    @Body() data: CreateVisitNoteDto,
+  ) {
+    return this.visitService.createVisitNote(data);
+  }
+
+  @Get('activity/:visitId')
+  getVisitActivity(
+    @AuthUser() user: UserPayload,
+    @Param('visitId') visitId: string,
+  ) {
+    return this.visitService.findVisitActivity(user.organizationId, visitId);
+  }
+
+  @Post('create-activity')
+  createVisitActivity(
+    @AuthUser() user: UserPayload,
+    @Body() data: CreateVisitActivityDTO,
+  ) {
+    return this.visitService.createVisitActivity(data);
   }
 }
