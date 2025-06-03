@@ -1,5 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Visit, VisitActivity, VisitNote } from '@prisma/client';
+import {
+  Prisma,
+  Visit,
+  VisitActivity,
+  VisitNote,
+  VisitType,
+} from '@prisma/client';
 import { UserPayload } from 'src/auth/dto/jwt.user.dto';
 import { ApiResponseDto } from 'src/dto/api-response.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -29,11 +35,22 @@ export class VisitService {
     };
   }
 
-  async findAll(user: UserPayload): Promise<ApiResponseDto<Visit[]>> {
+  async findAll(
+    user: UserPayload,
+    { type }: { type?: VisitType },
+  ): Promise<ApiResponseDto<Visit[]>> {
+    const query: Prisma.VisitWhereInput = {
+      organizationId: user.organizationId,
+    };
+
+    if (type) {
+      query.visitType = {
+        in: type.split(',') as VisitType[],
+      };
+    }
+
     const data = await this.prisma.visit.findMany({
-      where: {
-        organizationId: user.organizationId,
-      },
+      where: query,
       include: {
         contact: true,
         store: true,

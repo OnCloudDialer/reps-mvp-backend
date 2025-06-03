@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UserPayload } from 'src/auth/dto/jwt.user.dto';
@@ -16,6 +17,7 @@ import { CreateVisitDTO } from './dto/create.visit.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth-guard';
 import { CreateVisitNoteDto } from './dto/create-visit-note.dto';
 import { CreateVisitActivityDTO } from './dto/create-visit-activity.dto';
+import { VisitType } from '@prisma/client';
 
 @Controller('visit')
 @UseGuards(JwtAuthGuard)
@@ -28,8 +30,8 @@ export class VisitController {
   }
 
   @Get()
-  findAll(@AuthUser() user: UserPayload) {
-    return this.visitService.findAll(user);
+  findAll(@AuthUser() user: UserPayload, @Query('type') type: string) {
+    return this.visitService.findAll(user, { type: type as VisitType });
   }
 
   @Get(':id')
