@@ -12,6 +12,7 @@ import { RegisterUserDto } from './dto/register.dto';
 import { AuthUser } from 'src/decorators/authUser';
 import { User } from '@prisma/client';
 import { LoginUserDto } from './dto/login.dto';
+import { UserPayload } from './dto/jwt.user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,5 +38,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   refreshToken(@Request() req) {
     return this.authService.refreshToken(req.user);
+  }
+
+  @Get('activities')
+  @UseGuards(JwtAuthGuard)
+  getStats(@Request() req, @AuthUser() user: UserPayload) {
+    return this.authService.getStats(user.organizationId);
   }
 }

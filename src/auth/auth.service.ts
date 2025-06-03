@@ -16,6 +16,7 @@ import { Jwtdto } from './dto/jwt.dto';
 import { ConfigService } from '@nestjs/config';
 import { generateWorkspaceName } from './utils';
 import { UserPayload } from './dto/jwt.user.dto';
+import { StatsDTO } from './dto/stats.dto';
 
 @Injectable()
 export class AuthService {
@@ -183,5 +184,35 @@ export class AuthService {
       organizationId,
     };
     return payload;
+  }
+
+  async getStats(organizationId: string): Promise<ApiResponseDto<StatsDTO>> {
+    const totalContacts = await this.prismaService.contact.count({
+      where: {
+        organizationId,
+      },
+    });
+
+    const totalProducts = await this.prismaService.product.count({
+      where: {
+        organizationId,
+      },
+    });
+
+    const totalStores = await this.prismaService.store.count({
+      where: {
+        organizationId,
+      },
+    });
+
+    return {
+      data: {
+        totalContacts,
+        totalProducts,
+        totalStores,
+      },
+      message: '',
+    };
+    //
   }
 }
