@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsEnum,
   IsArray,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -48,4 +49,8 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   shareable_info?: string;
+
+  @IsUUID()
+  @IsOptional()
+  promotion_id?: string;
 }

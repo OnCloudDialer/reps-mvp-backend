@@ -21,6 +21,7 @@ model Organization {
   AreaTag             AreaTag[]
   Product             Product[]
   Visit               Visit[]
+  Promotion           Promotion[]
 }
 
 model OrganizationMembers {
@@ -45,6 +46,7 @@ model User {
   AreaTag             AreaTag[]
   Product             Product[]
   Visit               Visit[]
+  Promotion           Promotion[]
 }
 
 model Store {
@@ -131,22 +133,23 @@ model Tag {
 }
 
 model Product {
-  id              String        @id @default(uuid())
-  name            String
-  description     String?       @db.Text
-  default_price   Int           @db.Int
-  unit_of_measure UnitOfMeasure @default(UNIT)
-  regular_price   Int           @db.Int
-  special_price   Int?          @db.Int
-  imageUrls       ImageUrl[]
-  announcements   String?       @db.Text
-  shareable_info  String?       @db.Text
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
-  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId  String
-  User            User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String?
+  id               String             @id @default(uuid())
+  name             String
+  description      String?            @db.Text
+  default_price    Int                @db.Int
+  unit_of_measure  UnitOfMeasure      @default(UNIT)
+  regular_price    Int                @db.Int
+  special_price    Int?               @db.Int
+  imageUrls        ImageUrl[]
+  announcements    String?            @db.Text
+  shareable_info   String?            @db.Text
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId   String
+  User             User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String?
+  ProductPromotion ProductPromotion[]
 }
 
 model ImageUrl {
@@ -238,6 +241,41 @@ model Incentive {
   name        String
   description String?
   createdAt   DateTime @default(now())
+}
+
+model Promotion {
+  id               String             @id @default(uuid())
+  name             String
+  description      String?
+  type             PromotionType
+  value            Json
+  valid_from       DateTime
+  valid_to         DateTime
+  is_active        Boolean            @default(true)
+  notes_for_rep    String?
+  User             User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String?
+  organization     Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId   String?
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  ProductPromotion ProductPromotion[]
+}
+
+model ProductPromotion {
+  id          String    @id @default(uuid())
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  promotionId String
+  created_at  DateTime  @default(now())
+}
+
+enum PromotionType {
+  FLAT_DISCOUNT
+  BUY_X_GET_Y
+  BUNDLE
+  FREE_GIFT
 }
 
 enum ContactRole {

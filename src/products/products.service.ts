@@ -2,12 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserPayload } from 'src/auth/dto/jwt.user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { Prisma, Product, UnitOfMeasure } from '@prisma/client';
+import { Prisma, Product, Promotion, UnitOfMeasure } from '@prisma/client';
 import { ApiResponseDto } from 'src/dto/api-response.dto';
 import { UpdateProductDTO } from './dto/update-product.dto';
 import { BulkProductCreateDTO } from './dto/bulk-create-product.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { CreatePromotionDto } from './dto/create-promotion.dto';
+import { UpdatePromotionDto } from './dto/update-promotion.dto';
 
 @Injectable()
 export class ProductsService {
@@ -15,7 +17,7 @@ export class ProductsService {
 
   async create(
     user: UserPayload,
-    payload: any,
+    payload: CreateProductDto,
   ): Promise<ApiResponseDto<Product>> {
     const data = await this.prisma.product.create({
       data: {
@@ -41,6 +43,14 @@ export class ProductsService {
       });
     }
 
+    if (payload.promotion_id) {
+      await this.prisma.productPromotion.create({
+        data: {
+          productId: data.id,
+          promotionId: payload.promotion_id,
+        },
+      });
+    }
     return {
       data,
       message: 'Product Created',
@@ -80,7 +90,7 @@ export class ProductsService {
 
   async findAll(
     user: UserPayload,
-    query: { name?: string; unit?: string },
+    query: { name?: string; unit?: string; promotion?: string },
   ): Promise<ApiResponseDto<Product[]>> {
     const queryParams: Prisma.ProductWhereInput = {
       organizationId: user.organizationId,
@@ -92,6 +102,16 @@ export class ProductsService {
       };
     }
 
+    if (query.promotion) {
+      queryParams.ProductPromotion = {
+        some: {
+          promotionId: {
+            in: query.promotion.split(','),
+          },
+        },
+      };
+    }
+
     if (query.unit) {
       queryParams.unit_of_measure = query.unit as UnitOfMeasure;
     }
@@ -100,7 +120,29 @@ export class ProductsService {
       where: queryParams,
       include: {
         imageUrls: true,
+        ProductPromotion: {
+          include: {
+            promotion: true,
+          },
+        },
       },
+    });
+
+    return {
+      data,
+      message: '',
+    };
+  }
+
+  async findAllPromotion(
+    user: UserPayload,
+  ): Promise<ApiResponseDto<Promotion[]>> {
+    const queryParams: Prisma.PromotionWhereInput = {
+      userId: user.id,
+    };
+
+    const data = await this.prisma.promotion.findMany({
+      where: queryParams,
     });
 
     return {
@@ -114,6 +156,11 @@ export class ProductsService {
       where: { id },
       include: {
         imageUrls: true,
+        ProductPromotion: {
+          include: {
+            promotion: true,
+          },
+        },
       },
     });
     return {
@@ -152,6 +199,21 @@ export class ProductsService {
           productId: data.id,
           url,
         })),
+      });
+    }
+
+    if (payload.promotion_id) {
+      // Deleting Existing Records
+      await this.prisma.productPromotion.deleteMany({
+        where: {
+          productId: id,
+        },
+      });
+      await this.prisma.productPromotion.create({
+        data: {
+          productId: data.id,
+          promotionId: payload.promotion_id,
+        },
       });
     }
 
@@ -210,5 +272,53 @@ export class ProductsService {
     }
 
     return results;
+  }
+
+  async createPromotion(
+    user: UserPayload,
+    payload: CreatePromotionDto,
+  ): Promise<ApiResponseDto<Promotion>> {
+    const data = await this.prisma.promotion.create({
+      data: {
+        ...payload,
+        userId: user.id,
+      },
+    });
+
+    return {
+      data,
+      message: 'Promotion Created',
+    };
+  }
+
+  async updatePromotion(
+    user: UserPayload,
+    payload: UpdatePromotionDto,
+  ): Promise<ApiResponseDto<Promotion>> {
+    const data = await this.prisma.promotion.update({
+      where: {
+        userId: user.id,
+        id: payload.id,
+      },
+      data: {
+        ...payload,
+      },
+    });
+
+    return {
+      data,
+      message: 'Promotion Update',
+    };
+  }
+
+  async deletePromotion(
+    organizationId: string,
+    id: string,
+  ): Promise<ApiResponseDto<null>> {
+    await this.prisma.promotion.delete({ where: { id, organizationId } });
+    return {
+      data: null,
+      message: 'Promotion Deleted',
+    };
   }
 }

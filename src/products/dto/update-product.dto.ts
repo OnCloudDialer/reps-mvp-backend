@@ -1,7 +1,7 @@
-import { IsString } from 'class-validator';
+import { IsUUID } from 'class-validator';
 import { CreateProductDto } from './create-product.dto';
 
 export class UpdateProductDTO extends CreateProductDto {
-  @IsString()
+  @IsUUID()
   id: string;
 }
